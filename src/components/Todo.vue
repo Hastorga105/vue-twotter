@@ -23,7 +23,7 @@
           </v-col>
           <v-col cols="auto">
             <v-btn
-              :disabled="!newTwootContent"
+              :disabled="newTwootCharacterCount < 0 || newTwootCharacterCount == 180"
               type="submit"
               rounded="xl"
               color="primary"
@@ -36,9 +36,9 @@
         </v-row>
       </form>
     </div>
-    <div v-for="twoot in twoots">
-      <v-sheet border="md" class="pa-5">
-        <h4 class="font-weight-bold">@username</h4><h4> {{ (twoot.date).substr(5, 2) }}/{{  (twoot.date).substr(8, 2) }}</h4>
+    <div >
+      <v-sheet border="md" class="pa-5" v-for="twoot in twoots">
+        <h4 class="font-weight-bold">@username</h4><h4> {{ twoot.date }} </h4>
         <p>
           {{ twoot.content }}
         </p>
@@ -70,18 +70,21 @@
 import { 
   QuerySnapshot, collection, onSnapshot, 
   addDoc, doc, deleteDoc, updateDoc, 
-  query, orderBy, limit 
+  query, orderBy, limit,
+  Timestamp,
+serverTimestamp
 } from "firebase/firestore";
 import { db } from "@/firebase";
 const twootsCollection = collection (db, 'todos')//Get the collection from firebase
-const twootsQuery = query(twootsCollection, orderBy("date", "desc"));//QUERY:: Get items from the collection, order by date
+const twootsQuery = query(twootsCollection, orderBy("timestamp", "desc"));//QUERY:: Get items from the collection, order by date
 
 
 export default {
 
   mounted() {
-    const datata = new Date()
-    console.log(datata)
+    //this.getDate()
+    //const datata = new Date()
+    //console.log(datata)
     //const data2 = datata.getFullYear()
     //console.log(data2)
     onSnapshot(twootsQuery, (querySnapshot) => {
@@ -95,12 +98,14 @@ export default {
         content: doc.data().content,
         favorited: doc.data().favorited,
         
-        date: (doc.data().date),
+        date: doc.data().date/*this.getDate( doc.data().date )*/,
         }
+        //console.log(twoot.date)
         fbTwoots.push(twoot)
       })
       this.twoots = fbTwoots
     })
+    //console.log(this.twoots)
 
 
   },
@@ -117,6 +122,7 @@ export default {
   computed: {
     //builds reactively
     newTwootCharacterCount() {
+      //console.log(180 - this.newTwootContent.length)
       return 180 - this.newTwootContent.length;
     },
   },
@@ -126,7 +132,10 @@ export default {
       var dd = String(today.getDate()).padStart(2, '0');
       var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
       var yyyy = today.getFullYear();
-      today = yyyy + '/' + mm + '/' + dd;
+      var hour = today.getHours()
+      var minute = today.getMinutes()
+      var sec = today.getSeconds()
+      today = yyyy + '/' + mm + '/' + dd +" "+hour+":"+minute+":"+":"+sec;
       return today
     },
     TwootSize() {
@@ -152,11 +161,12 @@ export default {
     },
 
     createNewTwoot() {
-      if (this.newTwootContent) {
+      if (this.newTwootContent ) {
         addDoc(twootsCollection, {
           content: this.newTwootContent,
           favorited: false,
-          date: this.getDate(),
+          date: /*new Date()*/ this.getDate(),
+          timestamp: new Date()
         });
         this.newTwootContent = "";
       }
