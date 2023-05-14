@@ -8,9 +8,6 @@ import { fileURLToPath, URL } from 'node:url'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  publicPath: process.env.NODE_ENV === 'production'
-  ? '/GitHub-Repo-Name/'
-  : '/',
   base: '/vue-twotter/',
   plugins: [
     vue({ 
