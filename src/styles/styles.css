@@ -8,3 +8,34 @@
     background-color: rgba(255, 255, 255, 0.5) !important;
     backdrop-filter: blur(5px) !important;
 }
+.container {
+    max-width: 900px;
+    margin: 0 auto !important;
+  }
+.no-border {
+border: none !important;
+}
+.sticky{
+position: fixed;
+width: 100%;
+z-index: 999999 !important;
+}
+
+.noBorder{
+    border: none;
+}
+.noBorder:focus {
+    outline: none
+}
+.inline {
+    display: flex;
+}
+.list:hover{
+    background-color: rgb(235, 235, 235);
+}
+.button:hover{
+    color: red;
+    fill: red;
+    border: red;
+}
+

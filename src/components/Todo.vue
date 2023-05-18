@@ -1,5 +1,6 @@
 <template>
   <div class="container">
+    <default-bar />
     <div>
       <form class="mb-4" @submit.prevent="createNewTwoot">
         <v-textarea
@@ -64,9 +65,8 @@
   </div>
 </template>
 
-<script>
+<script setup>
 //imports
-
 import { 
   QuerySnapshot, collection, onSnapshot, 
   addDoc, doc, deleteDoc, updateDoc, 
@@ -75,23 +75,21 @@ import {
 serverTimestamp
 } from "firebase/firestore";
 import { db } from "@/firebase";
+import { ref, computed, onMounted} from 'vue'
+
+//Variables
 const twootsCollection = collection (db, 'todos')//Get the collection from firebase
 const twootsQuery = query(twootsCollection, orderBy("timestamp", "desc"));//QUERY:: Get items from the collection, order by date
 
+var newTwootContent = ref('')
+var newTwootSize = ref(180)
+let twoots = ref([])
 
-export default {
-
-  mounted() {
-    //this.getDate()
-    //const datata = new Date()
-    //console.log(datata)
-    //const data2 = datata.getFullYear()
-    //console.log(data2)
-    onSnapshot(twootsQuery, (querySnapshot) => {
+//Mounted
+onMounted(() => {
+  onSnapshot(twootsQuery, (querySnapshot) => {
       const fbTwoots = []
-      
       querySnapshot.forEach((doc) => {
-        
         //console.log(today)
         const twoot = {
         id: doc.id,
@@ -103,31 +101,21 @@ export default {
         //console.log(twoot.date)
         fbTwoots.push(twoot)
       })
-      this.twoots = fbTwoots
+      twoots = fbTwoots
     })
-    //console.log(this.twoots)
+})
 
+//Computed
+const newTwootCharacterCount = computed(() => {
+  //console.log(180 - this.newTwootContent.length)
+      return (180 - newTwootContent.length)
+      }
+      )
 
-  },
+      
 
-  name: "CreateTwootPanel",
-  data() {
-    return {
-      newTwootContent: "",
-      newTwootSize: 180,
-      twoots: [
-      ],
-    };
-  },
-  computed: {
-    //builds reactively
-    newTwootCharacterCount() {
-      //console.log(180 - this.newTwootContent.length)
-      return 180 - this.newTwootContent.length;
-    },
-  },
-  methods: {
-    getDate(){
+//Methods
+const getDate = () =>{
       var today = new Date();
       var dd = String(today.getDate()).padStart(2, '0');
       var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
@@ -135,49 +123,46 @@ export default {
       var hour = today.getHours()
       var minute = today.getMinutes()
       var sec = today.getSeconds()
-      today = yyyy + '/' + mm + '/' + dd +" "+hour+":"+minute+":"+":"+sec;
+      today = yyyy + '/' + mm + '/' + dd +" "+hour+":"+minute+":"+sec;
       return today
-    },
-    TwootSize() {
-      this.newTwootSize -= this.newTwootContent.length;
-    },
-
-    getColor(newTwootCharacterCount) {
-      if (newTwootCharacterCount > 21) {
+    }
+const twootSize = () =>{
+      newTwootSize -= newTwootContent.value.length;
+    }
+const getColor =  (newTwootCharacterCount) => {
+      if (newTwootCharacterCount.value > 21) {
         return "primary";
-      } else if (newTwootCharacterCount < 21 && newTwootCharacterCount > 0) {
+      } else if (newTwootCharacterCount.value < 21 && newTwootCharacterCount.value > 0) {
         return "yellow";
-      } else if (newTwootCharacterCount < 1) {
+      } else if (newTwootCharacterCount.value < 1) {
         return "error";
       }
-    },
+    }
 
-    favoriteTwoot(id) {
-      const index = this.twoots.findIndex((twoot) => twoot.id === id);
+const favoriteTwoot = (id) => {
+      const index = twoots.findIndex((twoot) => twoot.id === id);
       //this.twoots[index].favorited = !this.twoots[index].favorited;
       updateDoc(doc(twootsCollection, id), {
-        favorited: !this.twoots[index].favorited
+        favorited: !twoots[index].favorited
       });
-    },
+    }
 
-    createNewTwoot() {
-      if (this.newTwootContent ) {
-        addDoc(twootsCollection, {
-          content: this.newTwootContent,
-          favorited: false,
-          date: /*new Date()*/ this.getDate(),
-          timestamp: new Date()
-        });
-        this.newTwootContent = "";
-      }
-    },
-    deleteTwoot(id) {
+const createNewTwoot = () => {
+  addDoc(twootsCollection, {
+    content: newTwootContent.value,
+    favorited: false,
+    date: /*new Date()*/ getDate(),
+    timestamp: new Date()
+  });
+  newTwootContent.value = "";
+}
+const deleteTwoot = (id) => {
       deleteDoc(doc(twootsCollection, id));
       /*const twootss = this.twoots;
       this.twoots = twootss.filter((twoot) => twoot.id !== id);*/
-    },
-  },
-};
+}
+
+
 </script>
 
 <style>
